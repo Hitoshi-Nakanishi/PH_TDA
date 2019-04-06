@@ -1,11 +1,9 @@
 from ._software_backends.perseus_adapter import _call_perseus
 
-
 class Toplex:
     def __init__(self, toplices: [tuple], filtration_values: []):
         self.simplices = [tuple(t) for t in toplices]
         self.filtration = filtration_values
-
         self._check_state()
 
     def _check_state(self):
@@ -29,47 +27,36 @@ class Toplex:
     def _simplex_to_string_iter(self):
         def num_iter(simplex, filtration_value):
             yield str(len(simplex) - 1)
-
             for n in simplex:
                 yield str(n)
-
             yield str(filtration_value)
 
         for s, f in zip(self.simplices, self._internal_filt):
             yield ' '.join(num_iter(s, f))
 
     def _get_complex_string(self):
-
         header = '1\n'
         vertices = '\n'.join([s for s in self._simplex_to_string_iter()])
-
         return header + vertices
 
     def _convert_dgm_from_internal_filt_to_filt(self, dgm):
         points = [p for p in dgm if p[1] != -1]
         essential_points = [p for p in dgm if p[1] == -1]
-
         points = [[self._internal_filt_to_filt[p[0]], self._internal_filt_to_filt[p[1]]] for p in points]
         essential_points = [[self._internal_filt_to_filt[p[0]], float('inf')] for p in essential_points]
-
         return points + essential_points
 
     def calculate_persistence_diagrams(self):
-
         complex_string = self._get_complex_string()
         dgms = _call_perseus('nmfsimtop', complex_string)
-
         return_value = []
-
         homology_dimension_upper_bound = max([len(s) for s in self.simplices])
         for dim in range(homology_dimension_upper_bound):
             if dim in dgms:
                 return_value.append(self._convert_dgm_from_internal_filt_to_filt(dgms[dim]))
             else:
                 return_value.append([])
-
         return return_value
-
 
 def toplex_persistence_diagrams(toplices: [tuple], filtration_values: []):
     """
@@ -77,7 +64,6 @@ def toplex_persistence_diagrams(toplices: [tuple], filtration_values: []):
     filtration. A toplex is a notion of a simplicial complex where just the
     highest dimensional simplices are noted, i.e. toplex
     {[1,2]} stands for the simplicial complex {[1], [2], [1,2]}
-
     :param toplices: List of toplices given as numeric tuples.
     The numeric value of each dimension of a toplix tuple stands
     for a vertex, e.g. [1, 2, 3] is the 2 simplex built from the vertices 1, 2, 3.
@@ -87,7 +73,6 @@ def toplex_persistence_diagrams(toplices: [tuple], filtration_values: []):
     """
     toplex = Toplex(toplices, filtration_values)
     return toplex.calculate_persistence_diagrams()
-
 
 class ToplexException(Exception):
     pass
