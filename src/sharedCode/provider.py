@@ -1,14 +1,10 @@
 import h5py
 import numpy as np
 
-
 class ProviderError(Exception):
     pass
-
-
 class NameSpace:
     pass
-
 
 class Provider:
     _serial_str_keys = NameSpace()
@@ -68,11 +64,9 @@ class Provider:
         assumption: _check_views_are_consistent allready called.
         """
         first_view = list(self.data_views.values())[0]
-
         # Check if the labels are the same.
         if not set(self.str_2_int_label_map.keys()) == set(first_view.keys()):
             raise ProviderError('self.str_2_int_label_map has not the same labels as the data views.')
-
         # Check if int labels are int.
         if not all([type(v) is int for v in self.str_2_int_label_map.values()]):
             raise ProviderError('Labels in self.str_2_int_label have to be of type int.')
@@ -80,19 +74,15 @@ class Provider:
     def _check_state_for_serialization(self):
         if len(self.data_views) == 0:
             raise ProviderError('Provider must have at least one view.')
-
         self._check_views_are_consistent()
-
         if self.str_2_int_label_map is not None:
             self._check_str_2_int_labelmap()
 
     def _prepare_state_for_serialization(self):
         self._check_state_for_serialization()
-
         if self.str_2_int_label_map is None:
             self.str_2_int_label_map = {}
             first_view = list(self.data_views.values())[0]
-
             for i, label in enumerate(first_view):
                 self.str_2_int_label_map[label] = i + 1
 
@@ -101,13 +91,10 @@ class Provider:
 
         with h5py.File(file_path, 'w') as file:
             data_views_grp = file.create_group(self._serial_str_keys.data_views)
-
             for view_name, view in self.data_views.items():
                 view_grp = data_views_grp.create_group(view_name)
-
                 for label, label_subjects in view.items():
                     label_grp = view_grp.create_group(label)
-
                     for subject_id, subject_values in label_subjects.items():
                         label_grp.create_dataset(subject_id, data=subject_values)
 
@@ -132,22 +119,18 @@ class Provider:
             for view_name, view in data_views.items():
                 view = dict(view)
                 data_views[view_name] = view
-
                 for label, label_group in view.items():
                     label_group = dict(label_group)
                     view[label] = label_group
-
                     for subject_id, value in label_group.items():
-                        label_group[subject_id] = file[self._serial_str_keys.data_views][view_name][label][subject_id][
-                            ()]
-
+                        label_group[subject_id] = file[self._serial_str_keys.data_views]\
+                        [view_name][label][subject_id][()]
             self.data_views = data_views
 
             # load str_2_int_label_map
             str_2_int_label_map = dict(file[self._serial_str_keys.str_2_int_label_map])
             for str_label, str_to_int in str_2_int_label_map.items():
                 str_2_int_label_map[str_label] = str_to_int[()]
-
             self.str_2_int_label_map = str_2_int_label_map
             for k, v in self.str_2_int_label_map.items():
                 self.str_2_int_label_map[k] = int(v[0])
@@ -164,7 +147,6 @@ class Provider:
         data_views = {}
         for view in views:
             data_views[view] = self.data_views[view]
-
         return Provider(data_views=data_views, str_2_int_label_map=self.str_2_int_label_map, meta_data=self.meta_data)
 
     @property
@@ -205,12 +187,9 @@ class Provider:
     def __getitem__(self, index):
         sample_id = self.sample_ids[index]
         sample_label = self.sample_id_to_label_map[sample_id]
-
         x = {}
-
         for view_name, view_data in self.data_views.items():
             x[view_name] = view_data[sample_label][sample_id]
-
         return x, sample_label
 
 # Example
@@ -248,4 +227,3 @@ class Provider:
 # print('p.meta_data :')
 # print(p.meta_data)
 # """
-
