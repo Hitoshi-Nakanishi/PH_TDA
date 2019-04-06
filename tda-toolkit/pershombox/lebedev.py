@@ -2,6 +2,8 @@ import numpy as np
 import itertools
 import functools
 
+
+
 # region Octahedral rotation group
 """
 Implementation of Octahedral Rotation group with matrix representation from [2]
@@ -18,17 +20,22 @@ year = {2009}
 }
 """
 
+
 class OctahedralMatrixRotationGroup2Generators:
     """
     Implementation of Octahedral rotation group. Isomorphic to S4 freely generated with two elements:
+
         G = < A, D | DDD = AAAA = ADDA(1/D)= ADA(1/D)(1/A)(1/A)(1/D) = e
+
     """
     # The two generator elements for matrix
     _R1 = np.array(((0, 0, 1), (1, 0, 0), (0, 1, 0)))
     _R2 = np.array(((0, 1, 0), (-1, 0, 0), (0, 0, 1)))
+
     # Identifiers of generators in string word
     _R1_id = 'D'
     _R2_id = 'A'
+
     # Complete representation as shortest words
     _elements_as_words = ['', 'A', 'D', 'AA', 'AD', 'DA', 'DD', 'AAA', 'AAD', 'ADA', 'ADD', 'DAA', 'DAD', 'DDA',
                           'AADA', 'AADD', 'ADAA', 'ADAD', 'DADA', 'DADD', 'DDAA', 'DDAD', 'DADAA', 'DADAD']
@@ -49,12 +56,15 @@ class OctahedralMatrixRotationGroup2Generators:
                 matrix_word.append(cls._R1)
             if c == 'A':
                 matrix_word.append(cls._R2)
+
         return functools.reduce(np.matmul, matrix_word)
 
     def __iter__(self):
         return iter(self._elements_as_words)
 
+
 # endregion
+
 
 # region Lebedev orbits
 """
@@ -62,11 +72,16 @@ Class names were given with respect to [1].
 In this a Lebedev point is a tuple of length 2 where
     point[0] -> string identifier of the class to which the lebedev point contains.
     point[1] -> its identifier within the class.
+
 [1]: https://en.wikipedia.org/wiki/Lebedev_quadrature#Construction
+
 This region implements:
     1. Lebedev point sets a1, a2, a3
+
     2. A Lebedev Grid with 26 points.
+
 """
+
 
 class _LebedevOrbitBase:
     """
@@ -75,6 +90,7 @@ class _LebedevOrbitBase:
     """
     # Possible point numbers for points of child class. Should be [str]
     _point_numbers = None
+
     # id connecting a LebedevPoint with its class. Should be str
     _string_id = None
     _points = None
@@ -117,32 +133,40 @@ class _LebedevOrbitBase:
     def to_cartesian(self, point: tuple)->tuple:
         """
         Returns cartesian coordinates of point.
+
         Parameters
         ----------
         point : Lebedev Point.
+
         Returns
         -------
             tuple. (x,y,z) cartesian coordinates of point.
         """
         point = self._check_point(point)
+
         polar = self.to_spherical(point)
         theta = polar[0] * np.pi / 180
         phi = polar[1] * np.pi / 180
+
         x = np.cos(theta) * np.sin(phi)
         y = np.sin(theta) * np.sin(phi)
         z = np.cos(phi)
+
         return tuple(map(self.__snap_to_zero_one, [x, y, z]))
 
     def to_spherical(self, point: tuple):
         """
         Returns spherical coordinates of point.
+
         Parameters
         ----------
         point :
             tuple. Lebedev Point.
+
         Returns
         -------
             tuple. (theta, phi) spherical coordinates in degree of point:
+
                 (theta, phi) \in [-180, 180] x [0, 180]
         """
         point = self._check_point(point)
@@ -153,6 +177,7 @@ class _LebedevOrbitBase:
         """
         Calculates the permutation on the orbit induced by the generator elements of
         octahedral_rotation_group_implementation.
+
         Parameters
         ----------
         octahedral_rotation_group_matrix_implementation :
@@ -160,6 +185,7 @@ class _LebedevOrbitBase:
                 Expected call implementation:
                     self.generators
                     self.word_to_matrix(...)
+
         Returns
         -------
             dict. return_value['xy'][point_id] = (Matrix Representation of 'xy')(point_id)
@@ -172,7 +198,9 @@ class _LebedevOrbitBase:
             mapping = {}
             for p in self:
                 generator_matrix = O.word_to_matrix(generator)
+
                 rotated_point = np.matmul(generator_matrix, self.to_cartesian(p))
+
                 for pp in self:
                     if np.isclose(self.to_cartesian(pp), rotated_point).all():
                         mapping[p] = pp
@@ -184,6 +212,7 @@ class _LebedevOrbitBase:
     def points(self)->list:
         """
         Gives the points of the orbit.
+
         Returns
         -------
             list.
@@ -242,6 +271,7 @@ class LebedevOrbit_a2(_LebedevOrbitBase):
                 '11': (135, 90),
                 '12': (-135, 90)}
 
+
 class LebedevOrbit_a3(_LebedevOrbitBase):
     """
     Orbit of 1/sqrt(3) * (1, 1, 1)
@@ -273,13 +303,17 @@ def LebedevOrbit_b_k_Meta(typical_point: tuple):
     """
     raise NotImplementedError()
 
+
 def LebedevOrbit_c_k_Meta(typical_point: tuple):
     raise NotImplementedError()
+
 
 def LebedevOrbit_d_k_Meta(typical_point: tuple):
     raise NotImplementedError()
 
+
 # endregion
+
 
 # region LebedevGrids
 """
@@ -287,10 +321,12 @@ A LebedevGrid is a union of distinct Lebedev point sets.
 """
 def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
     """
+
     Parameters
     ----------
     lebedev_point_sets :
         LebedevPointBase. The LebedevPointBase derivations from which the grid will be built.
+
     Returns
     -------
         type. A LebedevGrid class built from the chosen LebedevPointSets.
@@ -307,6 +343,7 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
             """
             Calculates the permutation on the grid induced by the generator elements of
             octahedral_rotation_group_implementation.
+
             Parameters
             ----------
             octahedral_rotation_group_matrix_implementation :
@@ -314,6 +351,7 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
                     Expected call implementation:
                         self.generators
                         self.word_to_matrix(...)
+
             Returns
             -------
                 dict. return_value['xy'][point_id] = (Matrix Representation of 'xy')(point_id)
@@ -343,6 +381,7 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
                                     It seems that two orbits are not disjoint.
                                     """
                                 )
+
                         except KeyError:
                             # If we get here than one of the point set instances does not generate a permutation
                             # dict for w
@@ -351,6 +390,7 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
                                 {} seems not to act on one of the orbits.
                                 """.format(w)
                             )
+
             return return_value
 
         @property
@@ -372,9 +412,11 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
             ----------
             point :
                 tuple. Lebedev Point.
+
             Returns
             -------
                 tuple. (theta, phi) spherical coordinates in degree of point:
+
                     (theta, phi) \in [-180, 180] x [0, 180]
             """
             point = self._check_point(point)
@@ -384,9 +426,11 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
         def to_cartesian(self, point):
             """
             Returns cartesian coordinates of point.
+
             Parameters
             ----------
             point : Lebedev Point.
+
             Returns
             -------
                 tuple. (x,y,z) cartesian coordinates of point.
@@ -403,9 +447,12 @@ def LebedevGridMeta(lebedev_point_sets: [_LebedevOrbitBase])->type:
 
     return LebedevGrid
 
+
 LebedevGrid26 = LebedevGridMeta([LebedevOrbit_a1, LebedevOrbit_a2, LebedevOrbit_a3])
 
+
 # endregion
+
 
 # region Lebedev Integration
 """
@@ -435,22 +482,29 @@ class _Lebedev26Integrator:
     @classmethod
     def integrate(cls, function: dict):
         cls._check_function(function)
+
         return 4 * np.pi * sum([f_value * cls.weight(leb_point) for leb_point, f_value in function.items()])
+
 
 def lebedev_26_integration(function: dict)->float:
     """
     Integration of function residing on 26 point Lebedev grid.
+
     Parameters
     ----------
     function :
         dict. Expects Lebedev points, i.e., ('a1', '1') ... ('a3', '8'), as keys.
+
     Returns
     -------
         float.
+
     """
     return _Lebedev26Integrator.integrate(function)
 
+
 # endregion
+
 
 # region Octahedral rotation group action on the set of lebedev grid functions
 """
@@ -473,9 +527,11 @@ class ActionOctahedralRotationGroupOnLebedevGridFunctions:
         self._group_instance = octahedral_rotation_group_matrix_implementation()
         self._recursion_tails = self._generate_recursion_tails(octahedral_rotation_group_matrix_implementation)
 
-    def _generate_recursion_tails(self, octahedral_rotation_group_matrix_implementation):
+    def _generate_recursion_tails(self,
+                                  octahedral_rotation_group_matrix_implementation):
         grid = self._lebedev_orbit_instance
         permutation_by_generator = grid.point_permutation_by_generator(octahedral_rotation_group_matrix_implementation)
+
         recursion_tails = {}
 
         def get_recursion_tail_for_generator_word(permut):
@@ -483,11 +539,13 @@ class ActionOctahedralRotationGroupOnLebedevGridFunctions:
                 f_new = {}
                 for k, v in permut.items():
                     f_new[v] = f[k]
+
                 return f_new
             return recursion_tail_for_generator_word
 
         for word, permutation in permutation_by_generator.items():
             recursion_tails[word] = get_recursion_tail_for_generator_word(permutation)
+
         return recursion_tails
 
     def _check_f(self, f):
@@ -500,6 +558,7 @@ class ActionOctahedralRotationGroupOnLebedevGridFunctions:
 
     def _check_w(self, word):
         generators = self._group_instance.generators
+
         for c in word:
             if c not in generators:
                 raise ValueError(
@@ -514,6 +573,7 @@ class ActionOctahedralRotationGroupOnLebedevGridFunctions:
         """
         if w == '':
             return f
+
         if w in self._recursion_tails:
             return self._recursion_tails[w](f)
         else:
@@ -523,5 +583,6 @@ class ActionOctahedralRotationGroupOnLebedevGridFunctions:
         self._check_f(f)
         self._check_w(word)
         return self._execute(f, word)
+
 
 # endregion

@@ -6,7 +6,9 @@ from .lebedev import lebedev_26_integration, \
     ActionOctahedralRotationGroupOnLebedevGridFunctions, \
     LebedevGrid26
 
+
 from ._software_backends.hera_adapter import wasserstein_distance
+
 
 class Distance_NPHT_2d:
     def __init__(self,
@@ -15,6 +17,7 @@ class Distance_NPHT_2d:
                  included_dimensions=(0, 1),
                  minimize_over_rotations=True):
         """
+
         Parameters
         ----------
         wasserstein_degree:

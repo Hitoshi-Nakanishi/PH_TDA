@@ -1,6 +1,4 @@
-
 from .plugin import Plugin
-
 
 class ConsoleBatchProgress(Plugin):
     def __init__(self, print_to_std_out=True):
@@ -11,7 +9,6 @@ class ConsoleBatchProgress(Plugin):
         self.max_epochs = None
         self.current_epoch_number = None
         self.max_batches = None
-
         self._blanks = 50*' '
 
     def register(self, trainer):
@@ -27,7 +24,6 @@ class ConsoleBatchProgress(Plugin):
     def post_batch_handler(self, **kwargs):
         current_batch_number = kwargs['current_batch_number']
         print(self._blanks, end='\r')
-
         str = """Epoch {}/{} Batch {}/{} ({:.2f} %)""".format(self.current_epoch_number,
                                                                 self.max_epochs,
                                                                 current_batch_number,
